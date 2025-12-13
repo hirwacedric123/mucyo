@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translation Complete - Student Translator MVP</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="nav-desktop">
+                <div class="nav-logo-img">
+                    <div style="width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 50%, #0369a1 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: bold;">ST</div>
+                </div>
+                <div class="nav-links">
+                    <a href="{{ url_for('index') }}" class="nav-link">Home</a>
+                </div>
+            </div>
+            <div class="nav-mobile">
+                <div class="nav-logo-img">
+                    <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 50%, #0369a1 100%); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem; font-weight: bold;">ST</div>
+                </div>
+                <button class="nav-menu-btn" id="mobileMenuBtn">
+                    <i data-lucide="menu"></i>
+                </button>
+            </div>
+        </div>
+        <div class="nav-mobile-menu" id="mobileMenu">
+            <a href="{{ url_for('index') }}" class="mobile-nav-link">Home</a>
+        </div>
+    </nav>
+
+    <!-- Success Section -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <div class="success-container">
+                <div class="success-icon">
+                    <i data-lucide="check-circle"></i>
+                </div>
+                <h1 class="hero-title">
+                    Translation <span class="gradient-text">Completed</span><br>
+                    Successfully!
+                </h1>
+                <p class="hero-description">
+                    Your document has been translated with high accuracy using advanced AI technology and is ready for download.
+                </p>
+                
+                <div class="download-section">
+                    <a href="{{ url_for('download', filename=filename) }}" class="btn-hero-primary">
+                        <i data-lucide="download"></i>
+                        Download Translated Document
+                    </a>
+                    <p class="download-info">Filename: {{ filename }}</p>
+                </div>
+                
+                <div class="action-buttons">
+                    <a href="{{ url_for('index') }}" class="btn-primary">
+                        <i data-lucide="arrow-left"></i>
+                        Translate Another Document
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="footer" class="footer">
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-company">
+                    <div class="footer-logo">
+                        <div class="footer-logo-img"></div>
+                        <span>Student Translator MVP</span>
+                    </div>
+                    <p>Translate your documents with AI-powered precision</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Student Translator MVP. All Rights Reserved</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
+
