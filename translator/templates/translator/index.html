@@ -1,0 +1,265 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Professional document translation service for students. Translate documents between English, French, Arabic, Swahili, and Kinyarwanda with AI-powered precision.">
+    <title>Student Translator MVP - AI-Powered Document Translation</title>
+    <link rel="stylesheet" href="{% static 'translator/styles.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="nav-desktop">
+                <div class="nav-logo">
+                    <div class="nav-logo-img">
+                        <div class="logo-circle">ST</div>
+                    </div>
+                    <span class="nav-logo-text">Student Translator</span>
+                </div>
+                <div class="nav-links">
+                    <a href="#home" class="nav-link">Home</a>
+                    <a href="#how-it-works" class="nav-link">How It Works</a>
+                </div>
+            </div>
+            <div class="nav-mobile">
+                <div class="nav-logo">
+                    <div class="nav-logo-img">
+                        <div class="logo-circle logo-circle-small">ST</div>
+                    </div>
+                </div>
+                <button class="nav-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+                    <i data-lucide="menu"></i>
+                </button>
+            </div>
+        </div>
+        <div class="nav-mobile-menu" id="mobileMenu">
+            <a href="#home" class="mobile-nav-link">Home</a>
+            <a href="#how-it-works" class="mobile-nav-link">How It Works</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero-section">
+        <div class="hero-background">
+            <div class="hero-gradient"></div>
+            <div class="hero-pattern"></div>
+        </div>
+        <div class="hero-content">
+            <div class="hero-badge animate-fade-in-up">
+                <i data-lucide="sparkles"></i>
+                <span>AI-Powered Translation</span>
+            </div>
+            <h1 class="hero-title animate-fade-in-up">
+                Translate Your Documents<br>
+                <span class="gradient-text">With Precision</span>
+            </h1>
+            <p class="hero-description animate-fade-in-up">
+                Professional document translation between English, French, Arabic, Swahili, and Kinyarwanda. 
+                High-accuracy AI translation with language validation for educational and professional documents.
+            </p>
+            
+            <button id="continueBtn" class="btn-hero-primary animate-fade-in-up">
+                <span>Get Started</span>
+                <i data-lucide="arrow-right"></i>
+            </button>
+            
+            <!-- Translation Form -->
+            <div id="translationFormContainer" class="translation-form-wrapper" style="display: none;">
+                <div class="translation-form-container">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="flash-message flash-{{ message.tags }} animate-fade-in-up">
+                                <i data-lucide="{% if message.tags == 'error' %}alert-circle{% else %}check-circle{% endif %}"></i>
+                                <span>{{ message }}</span>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <div class="form-header">
+                        <h2>Document Translation</h2>
+                        <p>Upload your document and select languages</p>
+                    </div>
+                    
+                    <form action="{% url 'translator:translate' %}" method="POST" enctype="multipart/form-data" class="translation-form" id="translationForm">
+                        {% csrf_token %}
+                        
+                        <div class="form-group">
+                            <label for="source_language" class="form-label">
+                                <i data-lucide="globe"></i>
+                                <span>Source Language</span>
+                            </label>
+                            <div class="select-wrapper">
+                                <select id="source_language" name="source_language" required class="form-select">
+                                    <option value="">Choose source language...</option>
+                                    <option value="english">🇬🇧 English</option>
+                                    <option value="french">🇫🇷 French</option>
+                                    <option value="arabic">🇸🇦 Arabic</option>
+                                    <option value="swahili">🇰🇪 Swahili</option>
+                                    <option value="kinyarwanda">🇷🇼 Kinyarwanda</option>
+                                </select>
+                                <i data-lucide="chevron-down" class="select-arrow"></i>
+                            </div>
+                            <small class="form-help">Select the language of your document</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="file" class="form-label">
+                                <i data-lucide="upload"></i>
+                                <span>Upload Document</span>
+                            </label>
+                            <div class="file-upload-area" id="fileUploadArea">
+                                <input type="file" id="file" name="file" accept=".pdf,.docx" required class="file-input">
+                                <div class="file-upload-content">
+                                    <i data-lucide="file-text" class="file-icon"></i>
+                                    <div class="file-upload-text">
+                                        <span class="file-upload-main">Click to upload or drag and drop</span>
+                                        <span class="file-upload-sub">PDF or DOCX (Max 16MB)</span>
+                                    </div>
+                                </div>
+                                <div class="file-selected" id="fileSelected" style="display: none;">
+                                    <i data-lucide="check-circle" class="file-check-icon"></i>
+                                    <span class="file-name" id="fileName"></span>
+                                    <button type="button" class="file-remove" id="fileRemove" aria-label="Remove file">
+                                        <i data-lucide="x"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <small class="form-help">Maximum file size: 16MB</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="target_language" class="form-label">
+                                <i data-lucide="languages"></i>
+                                <span>Target Language</span>
+                            </label>
+                            <div class="select-wrapper">
+                                <select id="target_language" name="target_language" required class="form-select">
+                                    <option value="">Choose target language...</option>
+                                    <option value="english">🇬🇧 English</option>
+                                    <option value="french">🇫🇷 French</option>
+                                    <option value="arabic">🇸🇦 Arabic</option>
+                                    <option value="swahili">🇰🇪 Swahili</option>
+                                    <option value="kinyarwanda">🇷🇼 Kinyarwanda</option>
+                                </select>
+                                <i data-lucide="chevron-down" class="select-arrow"></i>
+                            </div>
+                            <small class="form-help">Select the language to translate to</small>
+                        </div>
+                        
+                        <button type="submit" class="btn-submit" id="submitBtn">
+                            <span class="btn-text">
+                                <i data-lucide="send"></i>
+                                Translate Document
+                            </span>
+                            <span class="btn-loading" style="display: none;">
+                                <span class="loading-spinner"></span>
+                                Translating...
+                            </span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="how-it-works" class="process-section">
+        <div class="section-container">
+            <div class="section-header">
+                <h2 class="section-title">
+                    How It <span class="gradient-text">Works</span>
+                </h2>
+                <p class="section-description">Simple, fast, and accurate translation in three easy steps</p>
+            </div>
+            <div class="process-steps">
+                <div class="process-step">
+                    <div class="step-icon">
+                        <i data-lucide="globe"></i>
+                    </div>
+                    <div class="step-number">1</div>
+                    <h3>Select Source Language</h3>
+                    <p>Choose the language of your document from English, French, Arabic, Swahili, or Kinyarwanda. This ensures accurate language detection.</p>
+                </div>
+                <div class="process-step">
+                    <div class="step-icon">
+                        <i data-lucide="upload"></i>
+                    </div>
+                    <div class="step-number">2</div>
+                    <h3>Upload & Validate</h3>
+                    <p>Upload your document (PDF or DOCX, max 16MB). Our AI validates the document language matches your selection for accuracy.</p>
+                </div>
+                <div class="process-step">
+                    <div class="step-icon">
+                        <i data-lucide="download"></i>
+                    </div>
+                    <div class="step-number">3</div>
+                    <h3>Translate & Download</h3>
+                    <p>Select target language and get your high-accuracy translated document as PDF, optimized for educational and professional use.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Grid -->
+    <section class="features-section">
+        <div class="section-container">
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i data-lucide="zap"></i>
+                    </div>
+                    <h3>Fast Translation</h3>
+                    <p>Get your documents translated in minutes with our advanced AI technology</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i data-lucide="shield-check"></i>
+                    </div>
+                    <h3>High Accuracy</h3>
+                    <p>Professional-grade translations with language validation for precision</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i data-lucide="lock"></i>
+                    </div>
+                    <h3>Secure & Private</h3>
+                    <p>Your documents are processed securely and not stored permanently</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i data-lucide="languages"></i>
+                    </div>
+                    <h3>Multiple Languages</h3>
+                    <p>Support for English, French, Arabic, Swahili, and Kinyarwanda</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="footer" class="footer">
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-company">
+                    <div class="footer-logo">
+                        <div class="logo-circle logo-circle-small">ST</div>
+                        <span>Student Translator</span>
+                    </div>
+                    <p>Translate your documents with AI-powered precision</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Student Translator MVP. All Rights Reserved</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="{% static 'translator/script.js' %}"></script>
+</body>
+</html>

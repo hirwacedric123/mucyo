@@ -23,7 +23,24 @@ wheels/
 .installed.cfg
 *.egg
 
-# Flask
+# Virtual Environment
+venv/
+env/
+ENV/
+.venv
+
+# Django
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+staticfiles/
+media/
+
+# Flask (legacy)
 instance/
 .webassets-cache
 

@@ -2,10 +2,14 @@ services:
   - type: web
     name: student-translator
     env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    startCommand: gunicorn mucyo.wsgi
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
       - key: OPENAI_API_KEY
         sync: false  # This will be set manually in Render dashboard
+      - key: SECRET_KEY
+        sync: false  # This will be set manually in Render dashboard
+      - key: DEBUG
+        value: "False"
