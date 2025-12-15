@@ -271,6 +271,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize Lucide icons
     lucide.createIcons();
     
+    // Show form if there are error messages
+    const flashMessages = document.querySelectorAll('.flash-message');
+    if (flashMessages.length > 0 && translationFormContainer) {
+        translationFormContainer.style.display = 'block';
+        if (continueBtn) {
+            continueBtn.style.display = 'none';
+        }
+        // Scroll to form to show error messages
+        setTimeout(() => {
+            translationFormContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+    }
+    
     // Add animation delays to process steps
     const processSteps = document.querySelectorAll('.process-step');
     processSteps.forEach((step, index) => {

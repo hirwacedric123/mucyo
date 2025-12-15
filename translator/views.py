@@ -9,6 +9,7 @@ from django.http import FileResponse, Http404
 from django.contrib import messages
 from django.conf import settings
 from django.views.decorators.http import require_http_methods
+from django.utils.text import get_valid_filename
 from openai import OpenAI
 import PyPDF2
 from docx import Document
@@ -30,15 +31,25 @@ LANGUAGES = {
 }
 
 # Initialize OpenAI client
-OPENAI_API_KEY = getattr(settings, 'OPENAI_API_KEY', os.environ.get('OPENAI_API_KEY', ''))
-try:
-    client = OpenAI(
-        api_key=OPENAI_API_KEY,
-        timeout=30.0
-    ) if OPENAI_API_KEY else None
-except Exception as e:
-    print(f"Warning: OpenAI client initialization failed: {e}")
-    client = None
+# Get API key from settings (which loads from .env)
+OPENAI_API_KEY = getattr(settings, 'OPENAI_API_KEY', '') or os.environ.get('OPENAI_API_KEY', '')
+print(f"DEBUG: OpenAI API Key found: {'Yes' if OPENAI_API_KEY else 'No'}")
+print(f"DEBUG: API Key length: {len(OPENAI_API_KEY) if OPENAI_API_KEY else 0}")
+
+client = None
+if OPENAI_API_KEY:
+    try:
+        # Initialize OpenAI client with API key
+        # Updated to work with OpenAI library v2.x
+        client = OpenAI(api_key=OPENAI_API_KEY)
+        print("DEBUG: OpenAI client initialized successfully")
+    except Exception as e:
+        print(f"Warning: OpenAI client initialization failed: {e}")
+        import traceback
+        print(traceback.format_exc())
+        client = None
+else:
+    print("Warning: OPENAI_API_KEY is not set. Please add it to your .env file.")
 
 
 def allowed_file(filename):
@@ -171,6 +182,10 @@ def index(request):
 def translate(request):
     """Handle file upload, translation, and return the translated document."""
     
+    # Debug: Log form data
+    print(f"DEBUG: POST data: {request.POST}")
+    print(f"DEBUG: FILES data: {request.FILES}")
+    
     # Check if file was uploaded
     if 'file' not in request.FILES:
         messages.error(request, 'No file selected. Please upload a document.')
@@ -208,15 +223,22 @@ def translate(request):
     
     file_path = None
     try:
-        # Save uploaded file
-        filename = file.name
-        file_path = os.path.join(settings.UPLOAD_FOLDER, filename)
+        # Save uploaded file - sanitize filename for security
+        original_filename = file.name
+        safe_filename = get_valid_filename(original_filename)
+        file_path = os.path.join(settings.UPLOAD_FOLDER, safe_filename)
+        
+        # Ensure the path is within UPLOAD_FOLDER (prevent directory traversal)
+        file_path = os.path.abspath(file_path)
+        upload_folder = os.path.abspath(settings.UPLOAD_FOLDER)
+        if not file_path.startswith(upload_folder):
+            raise Exception("Invalid file path detected.")
         with open(file_path, 'wb+') as destination:
             for chunk in file.chunks():
                 destination.write(chunk)
         
         # Extract text based on file type
-        file_ext = filename.rsplit('.', 1)[1].lower()
+        file_ext = safe_filename.rsplit('.', 1)[1].lower()
         if file_ext == 'pdf':
             extracted_text = extract_text_from_pdf(file_path)
         elif file_ext == 'docx':
@@ -227,6 +249,10 @@ def translate(request):
         # Check if text was extracted
         if not extracted_text or not extracted_text.strip():
             raise Exception("No text could be extracted from the document. The file may be empty or corrupted.")
+        
+        # Check if OpenAI client is initialized
+        if not client:
+            raise Exception("OpenAI API key is not configured. Please set OPENAI_API_KEY in your .env file or environment variables.")
         
         # Detect document language and validate
         detected_language = detect_language(extracted_text)
@@ -240,10 +266,18 @@ def translate(request):
         target_lang_name = LANGUAGES[target_language]
         translated_text = translate_text(extracted_text, source_lang_name, target_lang_name)
         
-        # Create output filename
-        base_name = os.path.splitext(filename)[0]
-        output_filename = f"{base_name}_translated.pdf"
+        # Create output filename - sanitize base name to ensure safe filename
+        base_name = os.path.splitext(safe_filename)[0]
+        # Remove any potentially unsafe characters from base name
+        safe_base_name = get_valid_filename(base_name)
+        output_filename = f"{safe_base_name}_translated.pdf"
         output_path = os.path.join(settings.TRANSLATIONS_FOLDER, output_filename)
+        
+        # Ensure output path is within TRANSLATIONS_FOLDER
+        output_path = os.path.abspath(output_path)
+        translations_folder = os.path.abspath(settings.TRANSLATIONS_FOLDER)
+        if not output_path.startswith(translations_folder):
+            raise Exception("Invalid output file path detected.")
         
         # Create the translated PDF file
         create_pdf_file(translated_text, output_path)
@@ -260,6 +294,12 @@ def translate(request):
         if file_path and os.path.exists(file_path):
             os.remove(file_path)
         
+        # Log the full error for debugging
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"Translation error: {str(e)}")
+        print(f"Full traceback:\n{error_trace}")
+        
         messages.error(request, f'Error processing document: {str(e)}')
         return redirect('translator:index')
 
@@ -271,15 +311,29 @@ def success(request, filename):
         messages.error(request, 'No file to download.')
         return redirect('translator:index')
     
-    return render(request, 'translator/success.html', {'filename': filename})
+    # Sanitize filename for security
+    safe_filename = get_valid_filename(filename)
+    
+    # Verify the file actually exists
+    file_path = os.path.join(settings.TRANSLATIONS_FOLDER, safe_filename)
+    file_path = os.path.abspath(file_path)
+    translations_folder = os.path.abspath(settings.TRANSLATIONS_FOLDER)
+    
+    if not file_path.startswith(translations_folder):
+        messages.error(request, 'Invalid file path.')
+        return redirect('translator:index')
+    
+    if not os.path.exists(file_path):
+        messages.error(request, 'File not found.')
+        return redirect('translator:index')
+    
+    return render(request, 'translator/success.html', {'filename': safe_filename})
 
 
 @require_http_methods(["GET"])
 def download(request, filename):
     """Download the translated document."""
     try:
-        from django.utils.text import get_valid_filename
-        
         # Sanitize filename to prevent directory traversal
         safe_filename = get_valid_filename(filename)
         file_path = os.path.join(settings.TRANSLATIONS_FOLDER, safe_filename)

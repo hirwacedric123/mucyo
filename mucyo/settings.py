@@ -8,6 +8,20 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    # Load .env file from the project root (BASE_DIR)
+    env_path = BASE_DIR / '.env'
+    load_dotenv(dotenv_path=env_path)
+    print(f"DEBUG: Loading .env from {env_path}")
+    print(f"DEBUG: OPENAI_API_KEY loaded: {'Yes' if os.environ.get('OPENAI_API_KEY') else 'No'}")
+except ImportError:
+    # dotenv not installed, skip loading .env file
+    print("WARNING: python-dotenv not installed. Install it with: pip install python-dotenv")
+except Exception as e:
+    print(f"WARNING: Error loading .env file: {e}")
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/

@@ -1,75 +1,137 @@
-# Student Translator App
+# Student Translator MVP
 
-A Flask web application that translates student documents between English, French, Arabic, Swahili, and Kinyarwanda using OpenAI GPT-4.
+A Django web application that translates student documents between English, French, Arabic, Swahili, and Kinyarwanda using OpenAI GPT-4.
 
 ## Features
 
-- Upload PDF and DOCX files
-- Automatic language detection
-- Translation between 5 languages
-- Download translated documents as PDF
+* Upload PDF and DOCX files
+* Automatic language detection
+* Translation between 5 languages
+* Download translated documents as PDF
+* Modern, responsive UI
 
-## Deployment on Render
+## Quick Start
 
 ### Prerequisites
-1. Create a Render account at https://render.com
-2. Get an OpenAI API key from https://platform.openai.com
 
-### Deployment Steps
+1. Python 3.10 or higher
+2. OpenAI API key from https://platform.openai.com/api-keys
 
-1. **Connect your repository** to Render
-2. **Create a new Web Service**
-3. **Set environment variables** in Render dashboard:
-   - `OPENAI_API_KEY`: Your OpenAI API key
-4. **Deploy** - Render will automatically use the configuration from `render.yaml`
+### Installation
 
-### Environment Variables Required
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/hirwacedric123/mucyo.git
+   cd mucyo
+   ```
 
-- `OPENAI_API_KEY`: Your OpenAI API key (set this in Render dashboard)
-- `PORT`: Automatically set by Render
+2. **Create and activate virtual environment**:
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
 
-### Local Development
-
-1. Install dependencies:
+3. **Install dependencies**:
    ```bash
    pip install -r requirements.txt
    ```
 
-2. Create a `.env` file with your OpenAI API key:
+4. **Set up environment variables**:
+   Create a `.env` file in the project root:
    ```
-   OPENAI_API_KEY=your_api_key_here
+   OPENAI_API_KEY=sk-your-actual-api-key-here
    ```
 
-3. Run the application:
+5. **Run migrations**:
    ```bash
-   python app.py
+   python manage.py migrate
    ```
 
-## File Structure
+6. **Collect static files**:
+   ```bash
+   python manage.py collectstatic --noinput
+   ```
+
+7. **Run the development server**:
+   ```bash
+   python manage.py runserver
+   ```
+
+8. **Visit** http://127.0.0.1:8000
+
+## Project Structure
 
 ```
-├── app.py              # Main Flask application
-├── requirements.txt    # Python dependencies
-├── render.yaml        # Render deployment configuration
-├── runtime.txt        # Python version specification
-├── Procfile          # Alternative deployment configuration
-├── .env              # Environment variables (local only)
-├── .gitignore        # Git ignore file
-├── static/           # CSS and JavaScript files
-├── templates/        # HTML templates
-├── uploads/          # Temporary file uploads (created at runtime)
-└── translations/     # Generated translations (created at runtime)
+Mucyo/
+├── manage.py              # Django management script
+├── mucyo/                 # Django project settings
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── translator/            # Main application
+│   ├── views.py          # View logic
+│   ├── urls.py           # App URLs
+│   ├── templates/        # HTML templates
+│   └── static/           # CSS and JavaScript
+├── docs/                  # Documentation
+│   ├── DEPLOYMENT_PYTHONANYWHERE.md
+│   ├── DJANGO_MIGRATION.md
+│   ├── FIXES.md
+│   └── TROUBLESHOOTING.md
+├── requirements.txt       # Python dependencies
+├── .env                   # Environment variables (not in git)
+└── README.md             # This file
 ```
 
 ## Supported File Types
 
-- PDF (.pdf)
-- Microsoft Word (.docx)
+* PDF (.pdf)
+* Microsoft Word (.docx)
 
 ## Supported Languages
 
-- English
-- French
-- Arabic
-- Swahili
-- Kinyarwanda
+* English
+* French
+* Arabic
+* Swahili
+* Kinyarwanda
+
+## Deployment
+
+### PythonAnywhere
+
+See [docs/DEPLOYMENT_PYTHONANYWHERE.md](docs/DEPLOYMENT_PYTHONANYWHERE.md) for detailed deployment instructions.
+
+### Other Platforms
+
+The application can be deployed to:
+* Render
+* Heroku
+* Railway
+* DigitalOcean
+* AWS
+* Any platform that supports Django
+
+## Environment Variables
+
+Required:
+- `OPENAI_API_KEY`: Your OpenAI API key (required)
+
+Optional:
+- `SECRET_KEY`: Django secret key (generates default for development)
+- `DEBUG`: Set to `False` in production
+
+## Documentation
+
+- [Deployment Guide](docs/DEPLOYMENT_PYTHONANYWHERE.md) - Deploy to PythonAnywhere
+- [Migration Guide](docs/DJANGO_MIGRATION.md) - Flask to Django migration details
+- [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues and solutions
+- [Fixes Applied](docs/FIXES.md) - List of fixes and improvements
+
+## License
+
+This project is open source and available for educational purposes.
+
+## Support
+
+For issues or questions, please check the [Troubleshooting Guide](docs/TROUBLESHOOTING.md) or open an issue on GitHub.
