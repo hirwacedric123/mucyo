@@ -16,7 +16,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+# Default to True for development, set to False in production via environment variable
+DEBUG = os.environ.get('DEBUG', 'True') == 'True' or os.environ.get('DEBUG', '').lower() == 'true'
 
 ALLOWED_HOSTS = ['*']  # Update this in production
 
@@ -113,8 +114,15 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# WhiteNoise configuration for static files
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# WhiteNoise configuration for static files (only in production)
+if not DEBUG:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+else:
+    # In development, use default storage
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+
+# Create staticfiles directory if it doesn't exist
+os.makedirs(STATIC_ROOT, exist_ok=True)
 
 # Media files (uploads)
 MEDIA_URL = '/media/'

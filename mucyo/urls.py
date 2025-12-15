@@ -1,6 +1,7 @@
 """
 URL configuration for Mucyo project.
 """
+import os
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -11,9 +12,11 @@ urlpatterns = [
     path('', include('translator.urls')),
 ]
 
-# Serve media files in development
+# Serve media and static files in development
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    # Only serve static files if STATIC_ROOT exists and has content
+    if os.path.exists(settings.STATIC_ROOT):
+        urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 

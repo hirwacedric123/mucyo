@@ -156,7 +156,15 @@ def create_pdf_file(text, output_path):
 @require_http_methods(["GET"])
 def index(request):
     """Render the main upload form page."""
-    return render(request, 'translator/index.html', {'languages': LANGUAGES})
+    try:
+        return render(request, 'translator/index.html', {'languages': LANGUAGES})
+    except Exception as e:
+        # Log the error for debugging
+        import traceback
+        print(f"Error rendering index template: {e}")
+        print(traceback.format_exc())
+        # Re-raise to see the actual error in DEBUG mode
+        raise
 
 
 @require_http_methods(["POST"])
@@ -270,10 +278,20 @@ def success(request, filename):
 def download(request, filename):
     """Download the translated document."""
     try:
-        import os
-        from django.utils._os import safe_join
+        from django.utils.text import get_valid_filename
         
-        file_path = safe_join(settings.TRANSLATIONS_FOLDER, filename)
+        # Sanitize filename to prevent directory traversal
+        safe_filename = get_valid_filename(filename)
+        file_path = os.path.join(settings.TRANSLATIONS_FOLDER, safe_filename)
+        
+        # Additional security check - ensure the resolved path is within TRANSLATIONS_FOLDER
+        file_path = os.path.abspath(file_path)
+        translations_folder = os.path.abspath(settings.TRANSLATIONS_FOLDER)
+        
+        if not file_path.startswith(translations_folder):
+            messages.error(request, 'Invalid file path.')
+            return redirect('translator:index')
+        
         if not os.path.exists(file_path):
             messages.error(request, 'File not found.')
             return redirect('translator:index')
@@ -281,7 +299,7 @@ def download(request, filename):
         return FileResponse(
             open(file_path, 'rb'),
             as_attachment=True,
-            filename=filename
+            filename=safe_filename
         )
     except Exception as e:
         messages.error(request, f'Error downloading file: {str(e)}')
