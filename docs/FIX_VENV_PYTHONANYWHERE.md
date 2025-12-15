@@ -64,8 +64,8 @@ pip install -r requirements.txt
 ### Step 6: Update WSGI File
 
 Make sure your WSGI file points to the correct venv path:
-- **Correct**: `/home/yourusername/mucyo/venv/bin/activate_this.py`
-- **Wrong**: `/home/yourusername/mucyo/mucyo/venv/bin/activate_this.py`
+- **Correct**: `/home/edutranslate/mucyo/venv/bin/activate_this.py`
+- **Wrong**: `/home/edutranslate/mucyo/mucyo/venv/bin/activate_this.py`
 
 ## Correct Project Structure
 

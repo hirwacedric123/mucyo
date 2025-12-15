@@ -141,8 +141,10 @@ Edit `mucyo/settings.py` and ensure:
 1. **ALLOWED_HOSTS** includes your PythonAnywhere domain:
 
    ```python
-   ALLOWED_HOSTS = ['yourusername.pythonanywhere.com']
+   ALLOWED_HOSTS = ['edutranslate.pythonanywhere.com', '127.0.0.1', 'localhost']
    ```
+   
+   **Note**: If your PythonAnywhere username is different, replace `edutranslate` with your actual username.
 2. **DEBUG** is set to False (or use environment variable)
 
 ## Step 8: Create a Web App
@@ -164,7 +166,7 @@ import os
 import sys
 
 # Add your project directory to the Python path
-path = '/home/yourusername/mucyo'
+path = '/home/edutranslate/mucyo'
 if path not in sys.path:
     sys.path.insert(0, path)
 
@@ -172,12 +174,12 @@ if path not in sys.path:
 os.environ['DJANGO_SETTINGS_MODULE'] = 'mucyo.settings'
 
 # Activate virtual environment (in project root, NOT in mucyo/venv/)
-activate_this = '/home/yourusername/mucyo/venv/bin/activate_this.py'
+activate_this = '/home/edutranslate/mucyo/venv/bin/activate_this.py'
 if os.path.exists(activate_this):
     exec(open(activate_this).read(), {'__file__': activate_this})
 else:
     # Alternative method if activate_this.py doesn't exist
-    venv_path = '/home/yourusername/mucyo/venv'
+    venv_path = '/home/edutranslate/mucyo/venv'
     if os.path.exists(venv_path):
         sys.path.insert(0, os.path.join(venv_path, 'lib', 'python3.10', 'site-packages'))
         # or python3.11 depending on your Python version
@@ -188,8 +190,8 @@ application = get_wsgi_application()
 ```
 
 **Important**: 
-- Replace `yourusername` with your actual PythonAnywhere username!
-- The venv path should be `/home/yourusername/mucyo/venv` (project root), NOT `/home/yourusername/mucyo/mucyo/venv`
+- Replace `edutranslate` with your actual PythonAnywhere username if different!
+- The venv path should be `/home/edutranslate/mucyo/venv` (project root), NOT `/home/edutranslate/mucyo/mucyo/venv`
 
 ## Step 10: Configure Static Files
 
@@ -197,11 +199,11 @@ application = get_wsgi_application()
 2. Add a new mapping:
 
    - **URL**: `/static/`
-   - **Directory**: `/home/yourusername/mucyo/staticfiles`
+   - **Directory**: `/home/edutranslate/mucyo/staticfiles`
 3. Add another mapping for media files (if needed):
 
    - **URL**: `/media/`
-   - **Directory**: `/home/yourusername/mucyo/media`
+   - **Directory**: `/home/edutranslate/mucyo/media`
 
 ## Step 11: Create Required Directories
 
@@ -216,11 +218,11 @@ mkdir -p uploads translations media staticfiles
 
 1. Go back to the **Web** tab
 2. Click the green **Reload** button
-3. Your app should now be live at: `https://yourusername.pythonanywhere.com`
+3. Your app should now be live at: `https://edutranslate.pythonanywhere.com`
 
 ## Step 13: Test Your Application
 
-1. Visit your site: `https://yourusername.pythonanywhere.com`
+1. Visit your site: `https://edutranslate.pythonanywhere.com`
 2. Try uploading a document and translating it
 3. Check the **Error log** in the Web tab if something doesn't work
 

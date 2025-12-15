@@ -33,7 +33,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
 # Default to True for development, set to False in production via environment variable
 DEBUG = os.environ.get('DEBUG', 'True') == 'True' or os.environ.get('DEBUG', '').lower() == 'true'
 
-ALLOWED_HOSTS = ['*']  # Update this in production
+ALLOWED_HOSTS = ['edutranslate.pythonanywhere.com', '127.0.0.1', 'localhost']
 
 
 # Application definition
