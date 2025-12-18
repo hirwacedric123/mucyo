@@ -15,8 +15,13 @@ import PyPDF2
 from docx import Document
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
+from reportlab.lib.enums import TA_RIGHT
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from arabic_reshaper import reshape
+from bidi.algorithm import get_display
 
 # Allowed file extensions
 ALLOWED_EXTENSIONS = {'pdf', 'docx'}
@@ -114,8 +119,21 @@ def translate_text(text, source_language, target_language):
     if not text or not text.strip():
         raise Exception("No text to translate")
     
-    # Create the translation prompt
-    prompt = f"""You are a professional translator for educational documents.
+    # Enhanced prompt for Kinyarwanda
+    if target_language.lower() == "kinyarwanda":
+        prompt = f"""You are an expert translator specializing in Kinyarwanda language.
+
+Translate the following text from {source_language} to Kinyarwanda.
+- Use proper Kinyarwanda grammar, vocabulary, and sentence structure.
+- Ensure natural, fluent Kinyarwanda that native speakers would use.
+- Maintain academic accuracy for educational content.
+- Use correct Kinyarwanda spelling and diacritics.
+- Only output the translated text, no explanations.
+
+Text to translate:
+{text}"""
+    else:
+        prompt = f"""You are a professional translator for educational documents.
 
 Translate the following text from {source_language} to {target_language}.
 - Keep the meaning exact and accurate with high precision.
@@ -129,12 +147,12 @@ Text to translate:
     
     try:
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": "You are a professional translator specializing in educational documents with high accuracy."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.2,
+            temperature=0.1,
             max_tokens=4000
         )
         
@@ -144,20 +162,52 @@ Text to translate:
         raise Exception(f"Error during translation: {str(e)}")
 
 
-def create_pdf_file(text, output_path):
+def create_pdf_file(text, output_path, is_arabic=False):
     """Create a PDF file with the translated text."""
     try:
         doc = SimpleDocTemplate(output_path, pagesize=letter)
         styles = getSampleStyleSheet()
         story = []
         
-        # Add the translated text
-        paragraphs = text.split('\n')
-        for para_text in paragraphs:
-            if para_text.strip():
-                p = Paragraph(para_text, styles['Normal'])
-                story.append(p)
-                story.append(Spacer(1, 0.2*inch))
+        if is_arabic:
+            # Register Arabic font
+            try:
+                pdfmetrics.registerFont(TTFont('Arabic', 'arial.ttf'))
+                font_name = 'Arabic'
+            except:
+                try:
+                    pdfmetrics.registerFont(TTFont('Arabic', 'C:/Windows/Fonts/arial.ttf'))
+                    font_name = 'Arabic'
+                except:
+                    font_name = 'Helvetica'
+            
+            # Create RTL style for Arabic
+            arabic_style = ParagraphStyle(
+                'Arabic',
+                parent=styles['Normal'],
+                fontName=font_name,
+                fontSize=12,
+                alignment=TA_RIGHT,
+                wordWrap='RTL'
+            )
+            
+            # Process Arabic text
+            paragraphs = text.split('\n')
+            for para_text in paragraphs:
+                if para_text.strip():
+                    reshaped_text = reshape(para_text)
+                    bidi_text = get_display(reshaped_text)
+                    p = Paragraph(bidi_text, arabic_style)
+                    story.append(p)
+                    story.append(Spacer(1, 0.2*inch))
+        else:
+            # Standard text processing
+            paragraphs = text.split('\n')
+            for para_text in paragraphs:
+                if para_text.strip():
+                    p = Paragraph(para_text, styles['Normal'])
+                    story.append(p)
+                    story.append(Spacer(1, 0.2*inch))
         
         doc.build(story)
     except Exception as e:
@@ -280,7 +330,8 @@ def translate(request):
             raise Exception("Invalid output file path detected.")
         
         # Create the translated PDF file
-        create_pdf_file(translated_text, output_path)
+        is_arabic = target_language == 'arabic'
+        create_pdf_file(translated_text, output_path, is_arabic=is_arabic)
         
         # Clean up uploaded file
         if os.path.exists(file_path):
